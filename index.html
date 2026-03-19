@@ -455,7 +455,7 @@ input::placeholder { color: var(--muted); }
 
 /* ─── GAME MODAL ──────────────────────────────────────── */
 #game-modal .modal {
-  max-width: 480px;
+  max-width: 560px;
   text-align: center;
 }
 
@@ -507,6 +507,39 @@ input::placeholder { color: var(--muted); }
 .gm-answer.visible { display: block; }
 .gm-answer strong { display: block; font-size: 15px; margin-bottom: 2px; }
 .gm-answer span { font-size: 11px; color: #5a9a5d; letter-spacing: 0.1em; }
+
+/* multiple choice display in game modal */
+.gm-choices {
+  display: none;
+  margin: 16px 0 8px;
+  text-align: left;
+  animation: fadeIn .3s ease;
+}
+.gm-choices.visible { display: block; }
+.gm-choice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1.2;
+}
+.gm-choice-item:last-child { margin-bottom: 0; }
+.gm-choice-letter {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
 
 /* game modal button styles */
 .sb-btn-play  { border-color: var(--accent); color: var(--accent); }
@@ -799,6 +832,27 @@ input::placeholder { color: var(--muted); }
         <input type="text" id="edit-songtitle" placeholder="e.g. Don't Stop Me Now (1979)">
       </div>
     </div>
+    <div style="margin-top:6px;margin-bottom:14px">
+      <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Multiple Choice (optional)</div>
+      <div class="modal-grid">
+        <div class="field">
+          <label>Choice A</label>
+          <input type="text" id="edit-choice-a" placeholder="e.g. Led Zeppelin">
+        </div>
+        <div class="field">
+          <label>Choice B</label>
+          <input type="text" id="edit-choice-b" placeholder="e.g. Pink Floyd">
+        </div>
+        <div class="field">
+          <label>Choice C</label>
+          <input type="text" id="edit-choice-c" placeholder="e.g. The Beatles">
+        </div>
+        <div class="field">
+          <label>Choice D</label>
+          <input type="text" id="edit-choice-d" placeholder="e.g. Queen">
+        </div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-danger" onclick="clearQuestionFromModal()" style="margin-right:auto">Clear Slot</button>
       <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
@@ -822,6 +876,7 @@ input::placeholder { color: var(--muted); }
       <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
       <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
     </div>
+    <div class="gm-choices" id="gm-choices"></div>
     <div class="gm-controls">
       <button class="btn sb-btn-play" id="gm-play" onclick="gmPlay()">▶ Play</button>
       <button class="btn sb-btn-stop" id="gm-stop" onclick="gmStop()" disabled>■ Stop</button>
@@ -1025,7 +1080,7 @@ function renderQuestionSlot(cat, pts) {
           </div>
         </div>
         <div style="font-size:11px;color:var(--muted2);letter-spacing:.05em">
-          ${esc(q.artist)}${q.songTitle ? ' · ' + esc(q.songTitle) : ''} &nbsp;·&nbsp; ${formatTime(q.start)}–${formatTime(q.end)} (${dur}s)
+          ${esc(q.artist)}${q.songTitle ? ' · ' + esc(q.songTitle) : ''} &nbsp;·&nbsp; ${formatTime(q.start)}–${formatTime(q.end)} (${dur}s)${q.choices && q.choices.length === 4 ? ' &nbsp;·&nbsp; <span style="color:var(--accent)">A B C D</span>' : ''}
         </div>
       </div>`;
   }
@@ -1120,6 +1175,11 @@ function openEditModal(catId, pts) {
   document.getElementById('edit-end').value = q ? formatTime(q.end) : '';
   document.getElementById('edit-artist').value = q ? q.artist : '';
   document.getElementById('edit-songtitle').value = q ? (q.songTitle || '') : '';
+  const ch = (q && q.choices) || [];
+  document.getElementById('edit-choice-a').value = ch[0] || '';
+  document.getElementById('edit-choice-b').value = ch[1] || '';
+  document.getElementById('edit-choice-c').value = ch[2] || '';
+  document.getElementById('edit-choice-d').value = ch[3] || '';
 
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -1149,8 +1209,16 @@ function saveEdit() {
   if (end <= start) { showToast('⚠ End must be after start'); return; }
   if (!artist) { showToast('⚠ Artist / Answer is required'); return; }
 
+  const choiceA = document.getElementById('edit-choice-a').value.trim();
+  const choiceB = document.getElementById('edit-choice-b').value.trim();
+  const choiceC = document.getElementById('edit-choice-c').value.trim();
+  const choiceD = document.getElementById('edit-choice-d').value.trim();
+  const choices = [choiceA, choiceB, choiceC, choiceD].filter(Boolean);
+
   const existingId = cat.questions[pts] ? cat.questions[pts].id : uid();
-  cat.questions[pts] = { id: existingId, videoId, start, end, artist, songTitle };
+  const qObj = { id: existingId, videoId, start, end, artist, songTitle };
+  if (choices.length === 4) qObj.choices = [choiceA, choiceB, choiceC, choiceD];
+  cat.questions[pts] = qObj;
   saveData();
   closeEditModal();
   renderCategoryList();
@@ -1345,6 +1413,18 @@ function openGameModal(catId, pts) {
   document.getElementById('gm-stop').disabled = true;
   document.getElementById('gm-reveal').disabled = false;
 
+  // Prepare choices (hidden until Play)
+  const choicesEl = document.getElementById('gm-choices');
+  choicesEl.classList.remove('visible');
+  if (q.choices && q.choices.length === 4) {
+    const letters = ['A', 'B', 'C', 'D'];
+    choicesEl.innerHTML = q.choices.map((c, i) =>
+      `<div class="gm-choice-item"><span class="gm-choice-letter">${letters[i]}</span>${esc(c)}</div>`
+    ).join('');
+  } else {
+    choicesEl.innerHTML = '';
+  }
+
   // Remove playing class
   document.querySelector('#game-modal .modal').classList.remove('playing');
 
@@ -1416,6 +1496,9 @@ function gmPlay() {
 
   document.getElementById('gm-stop').disabled = false;
   document.querySelector('#game-modal .modal').classList.add('playing');
+  // Show choices if present
+  const choicesEl = document.getElementById('gm-choices');
+  if (choicesEl.innerHTML) choicesEl.classList.add('visible');
   document.getElementById('sb-dot').classList.add('live');
   document.getElementById('sb-status').textContent = `NOW PLAYING → ${cat.name} ${currentGamePts}p`;
 
