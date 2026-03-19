@@ -64,6 +64,15 @@ nav {
   margin-right: auto;
 }
 
+.nav-brand-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+  color: var(--accent-d);
+}
+
 .nav-tab {
   font-family: 'DM Mono', monospace;
   font-size: 11px; letter-spacing: 0.18em;
@@ -455,7 +464,7 @@ input::placeholder { color: var(--muted); }
      NAV
 ═════════════════════════════════════════════════════════ -->
 <nav>
-  <span class="nav-brand">🎵 MusicQuiz</span>
+  <span class="nav-brand">🎵 MusicQuiz <span class="nav-brand-sub">by Fisers Davis</span></span>
   <button class="nav-tab active" id="tab-soundboard" onclick="switchTab('soundboard')">▶ Soundboard</button>
   <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">⚙ Setup</button>
   <span class="nav-event-name" id="nav-event-display"></span>
