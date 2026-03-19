@@ -439,9 +439,9 @@ input::placeholder { color: var(--muted); }
 }
 
 .cat-circle.used {
-  border-color: var(--green);
-  background: var(--green);
-  color: #000;
+  border-color: var(--border);
+  background: var(--border);
+  color: var(--muted);
   cursor: default;
   opacity: 0.5;
 }
@@ -1492,6 +1492,7 @@ function gmPlay() {
   if (!q) return;
 
   currentPlayId = q.id;
+  markUsed(currentGameCatId, currentGamePts);
   ytPlayer.loadVideoById({ videoId: q.videoId, startSeconds: q.start, endSeconds: q.end });
 
   document.getElementById('gm-stop').disabled = false;
@@ -1516,9 +1517,6 @@ function gmStop(silent) {
 }
 
 function gmReveal() {
-  if (currentGameCatId && currentGamePts) {
-    markUsed(currentGameCatId, currentGamePts);
-  }
   document.getElementById('gm-answer').classList.add('visible');
   document.getElementById('gm-reveal').disabled = true;
 }
