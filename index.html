@@ -458,8 +458,8 @@ input::placeholder { color: var(--muted); }
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* hidden YT player */
-#yt-container { position: fixed; bottom: 0; right: 0; width: 320px; height: 180px; overflow: hidden; pointer-events: none; z-index: -1; }
+/* hidden YT player — positioned off-screen so it stays functional but invisible */
+#yt-container { position: fixed; top: -9999px; left: -9999px; width: 320px; height: 180px; overflow: hidden; pointer-events: none; }
 </style>
 </head>
 <body>
