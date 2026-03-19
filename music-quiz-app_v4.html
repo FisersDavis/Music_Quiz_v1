@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d0d0d;
+  --surface:  #141414;
+  --surface2: #1c1c1c;
+  --border:   #272727;
+  --border2:  #333;
+  --accent:   #e8ff47;
+  --accent-d: #b8cc30;
+  --text:     #efefef;
+  --muted:    #555;
+  --muted2:   #888;
+  --red:      #ff4545;
+  --green:    #4caf50;
+  --play-bg:  #181d00;
+  --rev-bg:   #0d180d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+}
+
+/* scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(0,0,0,0.07) 3px 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* ─── SCREEN MANAGEMENT ────────────────────────────────── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ─── NAV BAR ──────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,13,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 32px;
+  height: 56px; gap: 0;
+}
+
+.nav-brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-right: auto;
+}
+
+.nav-tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  background: none; border: none;
+  cursor: pointer;
+  height: 56px;
+  padding: 0 20px;
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.nav-event-name {
+  font-size: 11px; color: var(--muted); letter-spacing: 0.1em;
+  margin-left: 16px;
+  max-width: 200px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ─── SHARED CONTENT WRAPPER ───────────────────────────── */
+.content { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* ─── HEADINGS ─────────────────────────────────────────── */
+.page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px; letter-spacing: 0.06em;
+  color: var(--text); line-height: 1;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 36px;
+}
+
+/* ─── SECTION LABELS ───────────────────────────────────── */
+.section-label {
+  font-size: 10px; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── SETUP FORM ───────────────────────────────────────── */
+.setup-meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin-bottom: 32px;
+  align-items: end;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted2); }
+
+input[type="text"], input[type="number"], input[type="url"] {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+}
+
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+
+/* ─── ADD SONG FORM ────────────────────────────────────── */
+.add-form {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.add-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.add-form-grid .field.full { grid-column: 1 / -1; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.form-actions {
+  display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px;
+}
+
+/* ─── BUTTONS ──────────────────────────────────────────── */
+.btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border: 1px solid; border-radius: 3px;
+  cursor: pointer; background: transparent;
+  transition: all .15s; white-space: nowrap;
+}
+
+.btn-accent { border-color: var(--accent); color: var(--accent); }
+.btn-accent:hover { background: var(--accent); color: #000; }
+
+.btn-ghost { border-color: var(--border2); color: var(--muted2); }
+.btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+.btn-danger { border-color: var(--red); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+
+.btn-green { border-color: var(--green); color: var(--green); }
+.btn-green:hover { background: var(--green); color: #000; }
+
+.btn-icon {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: none; border: none;
+  cursor: pointer; color: var(--muted);
+  padding: 4px 8px; border-radius: 3px;
+  transition: color .15s, background .15s;
+  line-height: 1;
+}
+.btn-icon:hover { color: var(--text); background: var(--border); }
+.btn-icon.del:hover { color: var(--red); background: rgba(255,69,69,.1); }
+
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn:disabled:hover { background: transparent; color: inherit; }
+
+/* ─── SONG LIST (SETUP) ────────────────────────────────── */
+.song-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+
+.song-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  transition: border-color .2s, background .2s;
+  cursor: grab;
+  user-select: none;
+}
+
+.song-item:active { cursor: grabbing; }
+.song-item.drag-over { border-color: var(--accent); background: var(--play-bg); }
+.song-item.dragging { opacity: 0.4; }
+
+.drag-handle { color: var(--muted); font-size: 14px; cursor: grab; }
+
+.song-info { min-width: 0; }
+
+.song-label-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 0.06em;
+  color: var(--text); line-height: 1;
+  margin-bottom: 3px;
+}
+
+.song-meta-line {
+  font-size: 11px; color: var(--muted2); letter-spacing: 0.05em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.song-actions { display: flex; gap: 4px; align-items: center; }
+
+/* ─── IMPORT/EXPORT ────────────────────────────────────── */
+.io-row {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 32px; flex-wrap: wrap;
+}
+
+.io-info { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+
+/* ─── EDIT MODAL ───────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 32px;
+  width: 100%; max-width: 560px;
+  max-height: 90vh; overflow-y: auto;
+  margin: 20px;
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 0.06em;
+  margin-bottom: 24px;
+}
+
+.modal-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 14px;
+}
+.modal-grid .field.full { grid-column: 1/-1; }
+
+.modal-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 14px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+/* ─── SOUNDBOARD PAGE ──────────────────────────────────── */
+#screen-soundboard .content { max-width: 760px; }
+
+.sb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 36px; flex-wrap: wrap; gap: 12px;
+}
+
+.sb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px; letter-spacing: 0.06em;
+  color: var(--accent); line-height: 1;
+  text-shadow: 0 0 30px rgba(232,255,71,.25);
+}
+
+.sb-event { font-size: 11px; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; }
+
+/* status bar */
+.status-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px; padding: 11px 18px;
+  margin-bottom: 28px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px; letter-spacing: 0.05em;
+}
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); flex-shrink: 0;
+  transition: background .3s;
+}
+.status-dot.live {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+#sb-status { flex: 1; color: var(--text); }
+
+/* cards */
+.sb-cards { display: flex; flex-direction: column; gap: 14px; }
+
+.sb-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 22px 26px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s, background .2s;
+}
+
+.sb-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--border); transition: background .2s;
+}
+
+.sb-card.playing { background: var(--play-bg); border-color: var(--accent); }
+.sb-card.playing::before { background: var(--accent); }
+.sb-card.revealed { border-color: var(--green); background: var(--rev-bg); }
+.sb-card.revealed::before { background: var(--green); }
+
+.sb-card-top {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px; gap: 12px;
+}
+
+.sb-card-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px; letter-spacing: 0.06em; line-height: 1;
+  color: var(--text);
+}
+.sb-card.playing .sb-card-label { color: var(--accent); }
+
+.sb-card-pts {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 3px; padding: 4px 10px; white-space: nowrap;
+}
+.sb-card.playing .sb-card-pts { border-color: var(--accent); color: var(--accent); }
+
+.sb-clip-info { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 14px; }
+
+/* waveform */
+.waveform {
+  display: flex; align-items: center; gap: 3px;
+  height: 22px; margin-bottom: 14px;
+  opacity: 0; transition: opacity .3s;
+}
+.sb-card.playing .waveform { opacity: 1; }
+.wbar {
+  width: 3px; background: var(--accent);
+  border-radius: 2px; height: 4px;
+}
+.sb-card.playing .wbar { animation: wv .8s ease-in-out infinite; }
+
+.wbar:nth-child(1)  { --h:18px; animation-delay:0.00s }
+.wbar:nth-child(2)  { --h:13px; animation-delay:0.10s }
+.wbar:nth-child(3)  { --h:22px; animation-delay:0.20s }
+.wbar:nth-child(4)  { --h:10px; animation-delay:0.05s }
+.wbar:nth-child(5)  { --h:20px; animation-delay:0.15s }
+.wbar:nth-child(6)  { --h:16px; animation-delay:0.25s }
+.wbar:nth-child(7)  { --h:24px; animation-delay:0.08s }
+.wbar:nth-child(8)  { --h:11px; animation-delay:0.18s }
+.wbar:nth-child(9)  { --h:19px; animation-delay:0.03s }
+.wbar:nth-child(10) { --h:15px; animation-delay:0.22s }
+.wbar:nth-child(11) { --h:21px; animation-delay:0.12s }
+.wbar:nth-child(12) { --h:14px; animation-delay:0.07s }
+@keyframes wv { 0%,100%{height:4px} 50%{height:var(--h)} }
+
+/* card controls */
+.sb-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.sb-btn-play  { border-color: var(--accent); color: var(--accent); }
+.sb-btn-play:hover  { background: var(--accent); color: #000; }
+.sb-btn-stop  { border-color: var(--red); color: var(--red); }
+.sb-btn-stop:hover  { background: var(--red); color: #fff; }
+.sb-btn-reveal { border-color: var(--border2); color: var(--muted2); margin-left: auto; }
+.sb-btn-reveal:hover { border-color: var(--green); color: var(--green); }
+
+/* answer */
+.sb-answer {
+  display: none;
+  margin-top: 14px; padding: 11px 16px;
+  background: rgba(76,175,80,.07);
+  border: 1px solid var(--green);
+  border-radius: 4px; color: var(--green);
+  font-size: 13px; letter-spacing: 0.05em;
+  animation: fadeIn .3s ease;
+}
+.sb-card.revealed .sb-answer { display: block; }
+.sb-answer strong { display: block; font-size: 15px; margin-bottom: 2px; }
+.sb-answer span { font-size: 11px; color: #5a9a5d; letter-spacing: 0.1em; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+/* empty state */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--muted); font-size: 13px; letter-spacing: 0.08em;
+}
+.empty-state .big { font-family: 'Bebas Neue'; font-size: 48px; color: var(--border2); display: block; margin-bottom: 8px; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 12px; letter-spacing: 0.08em;
+  padding: 10px 20px; border-radius: 4px;
+  opacity: 0; transition: opacity .2s, transform .2s;
+  pointer-events: none; z-index: 9998; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* hidden YT player */
+#yt-container { position: fixed; bottom: 0; right: 0; width: 320px; height: 180px; overflow: hidden; pointer-events: none; z-index: -1; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     NAV
+═════════════════════════════════════════════════════════ -->
+<nav>
+  <span class="nav-brand">🎵 MusicQuiz</span>
+  <button class="nav-tab active" id="tab-soundboard" onclick="switchTab('soundboard')">▶ Soundboard</button>
+  <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">⚙ Setup</button>
+  <span class="nav-event-name" id="nav-event-display"></span>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     SOUNDBOARD SCREEN
+═════════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-soundboard">
+  <div class="content">
+
+    <div class="sb-header">
+      <div>
+        <div class="sb-title" id="sb-main-title">Music Quiz</div>
+        <div class="sb-event" id="sb-event-sub"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="resetGame()" title="Clear all revealed answers for a fresh round">↺ Reset Game</button>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot" id="sb-dot"></div>
+      <div id="sb-status">Ready — select a clip to play</div>
+    </div>
+
+    <div class="sb-cards" id="sb-cards"></div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SETUP SCREEN
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-setup">
+  <div class="content">
+
+    <div class="page-title">Setup</div>
+    <div class="page-sub">Configure your quiz event</div>
+
+    <!-- Event name -->
+    <div class="section-label">Event Details</div>
+    <div class="setup-meta">
+      <div class="field">
+        <label>Event / Quiz Name</label>
+        <input type="text" id="setup-event-name" placeholder="e.g. Atea Summer Quiz 2026" oninput="saveEventName()">
+      </div>
+      <div style="padding-bottom:1px">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;">SONGS LOADED</div>
+        <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:.06em;color:var(--accent)" id="setup-count">0</div>
+      </div>
+    </div>
+
+    <!-- Add new song form -->
+    <div class="section-label">Add New Song</div>
+    <div class="add-form" id="add-form">
+      <div class="add-form-grid">
+        <div class="field">
+          <label>Display Label *</label>
+          <input type="text" id="add-label" placeholder="e.g. Rock 30p">
+        </div>
+        <div class="field">
+          <label>Points Value *</label>
+          <input type="number" id="add-points" placeholder="e.g. 30" min="0">
+        </div>
+        <div class="field full">
+          <label>YouTube URL or Video ID *</label>
+          <input type="text" id="add-url" placeholder="https://youtube.com/watch?v=... or just the video ID">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Start Time (MM:SS) *</label>
+          <input type="text" id="add-start" placeholder="0:00">
+        </div>
+        <div class="field">
+          <label>End Time (MM:SS) *</label>
+          <input type="text" id="add-end" placeholder="0:30">
+        </div>
+        <div class="field">
+          <label>Artist / Answer *</label>
+          <input type="text" id="add-artist" placeholder="e.g. Queen">
+        </div>
+      </div>
+      <div class="add-form-grid">
+        <div class="field full">
+          <label>Song Title (shown after reveal)</label>
+          <input type="text" id="add-songtitle" placeholder="e.g. Don't Stop Me Now (1979)">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
+        <button class="btn btn-accent" onclick="addSong()">+ Add Song</button>
+      </div>
+    </div>
+
+    <!-- Song list -->
+    <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Song List</span>
+      <span style="font-size:10px;color:var(--muted);letter-spacing:.1em">DRAG TO REORDER</span>
+    </div>
+    <div class="song-list" id="setup-song-list"></div>
+
+    <!-- Import / Export -->
+    <div class="section-label">Import / Export</div>
+    <div class="io-row">
+      <button class="btn btn-ghost" onclick="exportJSON()">↓ Export JSON</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">↑ Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+      <span class="io-info">Share your song configs with colleagues — they just import the JSON file.</span>
+    </div>
+    <div class="io-row">
+      <button class="btn btn-danger" onclick="clearAll()">⚠ Clear All Songs</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     EDIT MODAL
+═════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit Song</div>
+    <input type="hidden" id="edit-id">
+    <div class="modal-grid">
+      <div class="field">
+        <label>Display Label *</label>
+        <input type="text" id="edit-label" placeholder="e.g. Rock 40p">
+      </div>
+      <div class="field">
+        <label>Points Value *</label>
+        <input type="number" id="edit-points" placeholder="40" min="0">
+      </div>
+      <div class="field full">
+        <label>YouTube URL or Video ID *</label>
+        <input type="text" id="edit-url" placeholder="https://youtube.com/watch?v=...">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="field">
+        <label>Start (MM:SS) *</label>
+        <input type="text" id="edit-start" placeholder="0:00">
+      </div>
+      <div class="field">
+        <label>End (MM:SS) *</label>
+        <input type="text" id="edit-end" placeholder="0:30">
+      </div>
+      <div class="field">
+        <label>Artist / Answer *</label>
+        <input type="text" id="edit-artist" placeholder="Queen">
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="field full">
+        <label>Song Title (shown after reveal)</label>
+        <input type="text" id="edit-songtitle" placeholder="Don't Stop Me Now (1979)">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden YT player -->
+<div id="yt-container"><div id="yt-player"></div></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// DATA MODEL
+// ════════════════════════════════════════════════════════
+const STORAGE_KEY = 'musicquiz_v2';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      // [A-006] Validate stored schema structure
+      if (data && Array.isArray(data.songs)) return data;
+    }
+  } catch(e) {}
+  // Default demo songs
+  return {
+    eventName: 'Rock Quiz',
+    songs: [
+      { id: uid(), label: 'Rock 30p', points: 30, videoId: 'IXdNnw99-Ic', start: 82, end: 112, artist: 'Pink Floyd', songTitle: 'Wish You Were Here (1975)' },
+      { id: uid(), label: 'Rock 40p', points: 40, videoId: '0J2QdDbelmY', start: 12, end: 42, artist: 'The White Stripes', songTitle: 'Seven Nation Army (2003)' },
+      { id: uid(), label: 'Rock 50p', points: 50, videoId: 'HgzGwKwLmgM', start: 55, end: 85, artist: 'Queen', songTitle: "Don't Stop Me Now (1979)" },
+    ]
+  };
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+let appData = loadData();
+let revealedIds = new Set();
+
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (tab === 'soundboard') renderSoundboard();
+  if (tab === 'setup') renderSetup();
+}
+
+// ════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════
+function parseVideoId(input) {
+  input = (input || '').trim();
+  const patterns = [
+    // [B-003] Handle v= in any query param position
+    /[?&]v=([A-Za-z0-9_-]{11})/,
+    /youtu\.be\/([A-Za-z0-9_-]{11})/,
+    /youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,
+    // [B-002] Handle YouTube Shorts URLs
+    /youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/,
+    /^([A-Za-z0-9_-]{11})$/
+  ];
+  for (const p of patterns) {
+    const m = input.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function parseTime(str) {
+  str = (str || '').trim();
+  // [A-004] Reject H:MM:SS or any multi-colon input
+  if ((str.match(/:/g) || []).length > 1) return null;
+  // Accept MM:SS
+  if (/^\d+:\d{2}$/.test(str)) {
+    const [m, s] = str.split(':').map(Number);
+    // [A-003] Reject invalid seconds
+    if (s >= 60) return null;
+    return m * 60 + s;
+  }
+  const n = parseInt(str);
+  // [B-004] Reject negative and NaN
+  return isNaN(n) || n < 0 ? null : n;
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+let toastTimer = null;
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function updateNavEventName() {
+  const el = document.getElementById('nav-event-display');
+  el.textContent = appData.eventName || '';
+}
+
+// ════════════════════════════════════════════════════════
+// SETUP SCREEN
+// ════════════════════════════════════════════════════════
+function renderSetup() {
+  // Event name
+  document.getElementById('setup-event-name').value = appData.eventName || '';
+  document.getElementById('setup-count').textContent = appData.songs.length;
+  updateNavEventName();
+  renderSetupList();
+}
+
+function renderSetupList() {
+  const list = document.getElementById('setup-song-list');
+  document.getElementById('setup-count').textContent = appData.songs.length;
+
+  if (appData.songs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><span class="big">0</span>No songs added yet. Use the form above to add your first clip.</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  appData.songs.forEach((song, i) => {
+    const div = document.createElement('div');
+    div.className = 'song-item';
+    div.draggable = true;
+    div.dataset.index = i;
+
+    const duration = song.end - song.start;
+    div.innerHTML = `
+      <span class="drag-handle">⠿</span>
+      <div class="song-info">
+        <div class="song-label-badge">${esc(song.label)}</div>
+        <div class="song-meta-line">${esc(song.artist)}${song.songTitle ? ' · ' + esc(song.songTitle) : ''} &nbsp;·&nbsp; ${formatTime(song.start)}–${formatTime(song.end)} (${duration}s) &nbsp;·&nbsp; ${song.points}pts</div>
+      </div>
+      <div class="song-actions">
+        <button class="btn-icon" onclick="openEditModal('${song.id}')" title="Edit">✎</button>
+        <button class="btn-icon del" onclick="deleteSong('${song.id}')" title="Delete">✕</button>
+      </div>
+    `;
+
+    // Drag events
+    div.addEventListener('dragstart', onDragStart);
+    div.addEventListener('dragover', onDragOver);
+    div.addEventListener('drop', onDrop);
+    div.addEventListener('dragend', onDragEnd);
+
+    list.appendChild(div);
+  });
+}
+
+function saveEventName() {
+  appData.eventName = document.getElementById('setup-event-name').value;
+  saveData();
+  updateNavEventName();
+}
+
+function clearAddForm() {
+  ['add-label','add-points','add-url','add-start','add-end','add-artist','add-songtitle'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+function addSong() {
+  const label = document.getElementById('add-label').value.trim();
+  const points = parseInt(document.getElementById('add-points').value);
+  const urlRaw = document.getElementById('add-url').value.trim();
+  const startStr = document.getElementById('add-start').value.trim();
+  const endStr = document.getElementById('add-end').value.trim();
+  const artist = document.getElementById('add-artist').value.trim();
+  const songTitle = document.getElementById('add-songtitle').value.trim();
+
+  if (!label)   { showToast('⚠ Display label is required'); return; }
+  if (isNaN(points) || points < 1) { showToast('⚠ Points value must be a positive number'); return; }
+  const videoId = parseVideoId(urlRaw);
+  if (!videoId) { showToast('⚠ Could not extract a YouTube video ID — check the URL'); return; }
+  const start = parseTime(startStr);
+  const end = parseTime(endStr);
+  if (start === null) { showToast('⚠ Invalid start time (use M:SS format)'); return; }
+  if (end === null)   { showToast('⚠ Invalid end time (use M:SS format)'); return; }
+  if (end <= start)   { showToast('⚠ End time must be after start time'); return; }
+  if (!artist) { showToast('⚠ Artist / Answer is required'); return; }
+
+  appData.songs.push({ id: uid(), label, points, videoId, start, end, artist, songTitle });
+  saveData();
+  clearAddForm();
+  renderSetupList();
+  showToast('✓ Song added');
+  // [D-001] Return focus to first field for bulk entry workflow
+  document.getElementById('add-label').focus();
+}
+
+function deleteSong(id) {
+  if (!confirm('Remove this song from the list?')) return;
+  // [C-001] Stop playback if this song is currently playing
+  if (currentPlayId === id) sbStop();
+  revealedIds.delete(id);
+  appData.songs = appData.songs.filter(s => s.id !== id);
+  saveData();
+  renderSetupList();
+  showToast('Song removed');
+}
+
+// ────────── Edit modal ──────────────────────────────────
+function openEditModal(id) {
+  const song = appData.songs.find(s => s.id === id);
+  if (!song) return;
+  document.getElementById('edit-id').value = song.id;
+  document.getElementById('edit-label').value = song.label;
+  document.getElementById('edit-points').value = song.points;
+  document.getElementById('edit-url').value = song.videoId;
+  document.getElementById('edit-start').value = formatTime(song.start);
+  document.getElementById('edit-end').value = formatTime(song.end);
+  document.getElementById('edit-artist').value = song.artist;
+  document.getElementById('edit-songtitle').value = song.songTitle || '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const song = appData.songs.find(s => s.id === id);
+  if (!song) return;
+
+  const label = document.getElementById('edit-label').value.trim();
+  const points = parseInt(document.getElementById('edit-points').value);
+  const urlRaw = document.getElementById('edit-url').value.trim();
+  const startStr = document.getElementById('edit-start').value.trim();
+  const endStr = document.getElementById('edit-end').value.trim();
+  const artist = document.getElementById('edit-artist').value.trim();
+  const songTitle = document.getElementById('edit-songtitle').value.trim();
+
+  if (!label) { showToast('⚠ Label required'); return; }
+  if (isNaN(points) || points < 1) { showToast('⚠ Points must be a positive number'); return; }
+  const videoId = parseVideoId(urlRaw);
+  if (!videoId) { showToast('⚠ Invalid YouTube URL/ID'); return; }
+  const start = parseTime(startStr);
+  const end = parseTime(endStr);
+  if (start === null || end === null) { showToast('⚠ Invalid time format'); return; }
+  if (end <= start) { showToast('⚠ End must be after start'); return; }
+  if (!artist) { showToast('⚠ Artist required'); return; }
+
+  Object.assign(song, { label, points, videoId, start, end, artist, songTitle });
+  saveData();
+  closeEditModal();
+  renderSetupList();
+  showToast('✓ Changes saved');
+}
+
+// Close modal on overlay click
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+// ────────── Drag to reorder ─────────────────────────────
+let dragSrcIndex = null;
+
+function onDragStart(e) {
+  dragSrcIndex = parseInt(e.currentTarget.dataset.index);
+  e.currentTarget.classList.add('dragging');
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  const destIndex = parseInt(e.currentTarget.dataset.index);
+  if (dragSrcIndex !== null && dragSrcIndex !== destIndex) {
+    const moved = appData.songs.splice(dragSrcIndex, 1)[0];
+    appData.songs.splice(destIndex, 0, moved);
+    saveData();
+    renderSetupList();
+  }
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+  dragSrcIndex = null;
+}
+
+// ────────── Import / Export ─────────────────────────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (appData.eventName || 'music-quiz').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '.json';
+  a.click();
+  // [F-005] Release blob reference
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  showToast('✓ JSON exported');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.songs || !Array.isArray(imported.songs)) throw new Error('Invalid format');
+      // [A-005] Validate required fields on each song
+      imported.songs = imported.songs.filter(s =>
+        s.videoId && typeof s.start === 'number' && typeof s.end === 'number' && s.artist
+      );
+      // [E-001/E-002] Regenerate all IDs to prevent XSS via crafted IDs
+      imported.songs.forEach(s => { s.id = uid(); });
+      // [E-003] Truncate eventName in confirm dialog
+      const displayName = (imported.eventName || 'quiz').slice(0, 50);
+      if (!confirm(`Import "${displayName}" with ${imported.songs.length} songs? This will replace your current setup.`)) return;
+      appData = imported;
+      revealedIds.clear();
+      saveData();
+      renderSetup();
+      showToast(`✓ Imported ${appData.songs.length} songs`);
+    } catch(err) {
+      showToast('⚠ Invalid JSON file');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL songs? This cannot be undone.')) return;
+  appData.songs = [];
+  revealedIds.clear();
+  saveData();
+  renderSetupList();
+  // [C-003] Re-render soundboard if it's the active screen
+  if (document.getElementById('screen-soundboard').classList.contains('active')) renderSoundboard();
+  showToast('All songs cleared');
+}
+
+// ════════════════════════════════════════════════════════
+// SOUNDBOARD SCREEN
+// ════════════════════════════════════════════════════════
+function renderSoundboard() {
+  const eventName = appData.eventName || 'Music Quiz';
+  document.getElementById('sb-main-title').textContent = eventName;
+  document.getElementById('sb-event-sub').textContent = `${appData.songs.length} clips loaded`;
+  updateNavEventName();
+
+  const container = document.getElementById('sb-cards');
+
+  if (appData.songs.length === 0) {
+    container.innerHTML = `<div class="empty-state"><span class="big">♪</span>No songs configured yet.<br>Go to <strong>⚙ Setup</strong> to add your clips.</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  appData.songs.forEach(song => {
+    const card = document.createElement('div');
+    card.className = 'sb-card';
+    card.id = `sbcard-${song.id}`;
+
+    const duration = song.end - song.start;
+    const wbars = Array.from({length:12}, () => `<div class="wbar"></div>`).join('');
+
+    card.innerHTML = `
+      <div class="sb-card-top">
+        <div class="sb-card-label">${esc(song.label)}</div>
+        <div class="sb-card-pts">${song.points} pts · ${duration}s</div>
+      </div>
+      <div class="sb-clip-info">▶ ${formatTime(song.start)} → ⏹ ${formatTime(song.end)}</div>
+      <div class="waveform">${wbars}</div>
+      <div class="sb-controls">
+        <button class="btn sb-btn-play" onclick="sbPlay('${song.id}')">▶ Play</button>
+        <button class="btn sb-btn-stop" id="sbstop-${song.id}" onclick="sbStop()" disabled>■ Stop</button>
+        <button class="btn sb-btn-reveal" onclick="sbReveal('${song.id}')">Reveal Answer</button>
+      </div>
+      <div class="sb-answer" id="sbanswer-${song.id}">
+        <strong>${esc(song.artist)}</strong>
+        <span>${esc(song.songTitle || '')}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // [A-002] Restore playing-card state after rebuild
+  if (currentPlayId) {
+    const playCard = document.getElementById(`sbcard-${currentPlayId}`);
+    if (playCard) {
+      playCard.classList.add('playing');
+      const stopBtn = document.getElementById(`sbstop-${currentPlayId}`);
+      if (stopBtn) stopBtn.disabled = false;
+      const song = appData.songs.find(s => s.id === currentPlayId);
+      if (song) {
+        document.getElementById('sb-dot').classList.add('live');
+        document.getElementById('sb-status').textContent =
+          `NOW PLAYING → ${song.label}  ·  ends at ${formatTime(song.end)}`;
+      }
+    }
+  }
+
+  // [C-002] Restore revealed state after rebuild
+  revealedIds.forEach(rid => {
+    const revCard = document.getElementById(`sbcard-${rid}`);
+    if (revCard) revCard.classList.add('revealed');
+  });
+}
+
+function resetGame() {
+  if (!confirm('Clear all revealed answers? The song list stays intact.')) return;
+  revealedIds.clear();
+  document.querySelectorAll('.sb-card').forEach(c => c.classList.remove('revealed'));
+  document.querySelectorAll('.sb-btn-reveal').forEach(b => b.disabled = false);
+  sbStop();
+  showToast('✓ Game reset — ready for a new round');
+}
+
+// ════════════════════════════════════════════════════════
+// YOUTUBE PLAYER
+// ════════════════════════════════════════════════════════
+let ytPlayer = null;
+let ytReady = false;
+let currentPlayId = null;
+let stopTimer = null;
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-player', {
+    height: '180', width: '320',
+    playerVars: { autoplay:0, controls:0, disablekb:1, fs:0, modestbranding:1, rel:0 },
+    events: {
+      onReady: () => {
+        ytReady = true;
+        // Ensure iframe allows autoplay audio
+        const iframe = document.querySelector('#yt-container iframe');
+        if (iframe) iframe.setAttribute('allow', 'autoplay; encrypted-media');
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) sbClearState();
+      }
+    }
+  });
+};
+
+const ytScript = document.createElement('script');
+ytScript.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(ytScript);
+
+function sbPlay(id) {
+  if (!ytReady) { showToast('Player not ready yet…'); return; }
+  sbStop(true);
+
+  const song = appData.songs.find(s => s.id === id);
+  if (!song) return;
+
+  currentPlayId = id;
+  ytPlayer.loadVideoById({ videoId: song.videoId, startSeconds: song.start, endSeconds: song.end });
+
+  document.getElementById(`sbcard-${id}`).classList.add('playing');
+  document.getElementById(`sbstop-${id}`).disabled = false;
+  document.getElementById('sb-dot').classList.add('live');
+  document.getElementById('sb-status').textContent = `NOW PLAYING → ${song.label}  ·  ends at ${formatTime(song.end)}`;
+
+  // Safety fallback stop timer
+  stopTimer = setTimeout(() => sbStop(), (song.end - song.start) * 1000 + 800);
+}
+
+function sbStop(silent = false) {
+  clearTimeout(stopTimer);
+  if (ytPlayer && ytReady) { try { ytPlayer.stopVideo(); } catch(e){} }
+  sbClearState(silent);
+}
+
+function sbClearState(silent = false) {
+  if (currentPlayId) {
+    document.getElementById(`sbcard-${currentPlayId}`)?.classList.remove('playing');
+    const stopBtn = document.getElementById(`sbstop-${currentPlayId}`);
+    if (stopBtn) stopBtn.disabled = true;
+  }
+  document.getElementById('sb-dot').classList.remove('live');
+  if (!silent) document.getElementById('sb-status').textContent = 'Stopped — ready for next clip';
+  currentPlayId = null;
+}
+
+function sbReveal(id) {
+  revealedIds.add(id);
+  const card = document.getElementById(`sbcard-${id}`);
+  if (card) {
+    card.classList.add('revealed');
+    // [D-004] Disable reveal button after reveal
+    const revBtn = card.querySelector('.sb-btn-reveal');
+    if (revBtn) revBtn.disabled = true;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+renderSoundboard();
+updateNavEventName();
+</script>
+</body>
+</html>
