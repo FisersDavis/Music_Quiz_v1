@@ -768,7 +768,8 @@ input::placeholder { color: var(--muted); }
       &nbsp;&nbsp;• A <strong>YouTube URL</strong> (or just the video ID) for the song<br>
       &nbsp;&nbsp;• A <strong>start time</strong> and <strong>end time</strong> (in M:SS format, e.g. 1:30) — this is the clip that plays<br>
       &nbsp;&nbsp;• The <strong>artist name</strong> — this is the answer that gets revealed<br>
-      &nbsp;&nbsp;• Optionally, a <strong>song title</strong> (shown after the answer is revealed)<br><br>
+      &nbsp;&nbsp;• Optionally, a <strong>song title</strong> (shown after the answer is revealed)<br>
+      &nbsp;&nbsp;• Optionally, <strong>multiple choice answers</strong> (A, B, C, D) — if you fill in all four, they'll be displayed during the game as answer options for contestants to choose from. Leave them blank for an open-ended question.<br><br>
 
       <strong style="color:var(--accent)">Step 4 — Reorder categories</strong><br>
       Drag categories up and down in the setup list to change the order they appear on the soundboard.<br><br>
@@ -784,6 +785,10 @@ input::placeholder { color: var(--muted); }
       <strong style="color:var(--text)">Playing a question:</strong> Click any point circle on the soundboard.
       A popup will appear with play/stop controls. Hit <strong>▶ Play</strong> to start the clip.
       The music plays for the duration you set (start → end time).<br><br>
+
+      <strong style="color:var(--text)">Multiple choice:</strong> If a question has multiple choice answers set up,
+      the four options (A, B, C, D) will appear on screen when the clip starts playing.
+      Contestants pick one of the displayed choices instead of guessing freely.<br><br>
 
       <strong style="color:var(--text)">Revealing the answer:</strong> When the contestants have guessed (or given up),
       click <strong>Reveal Answer</strong>. The artist and song title will appear. The circle turns green to show

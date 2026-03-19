@@ -6,9 +6,11 @@ A browser-based music quiz soundboard. Set up categories with YouTube clips, the
 
 - Grid-based soundboard with three point tiers (30, 40, 50)
 - YouTube integration with configurable start/end timestamps
+- Optional multiple choice answers (A, B, C, D) per question
 - Setup screen with category management and drag-to-reorder
 - Import/export quiz configurations as JSON
-- Game state tracking — marks used questions, supports mid-game reset
+- Game state tracking — used and revealed states with visual distinction, supports mid-game reset
+- Built-in "How to Use" guide with step-by-step instructions
 - Dark retro UI with scanline overlay and monospace fonts
 - Zero dependencies — single HTML file, runs in any modern browser
 
@@ -18,7 +20,8 @@ A browser-based music quiz soundboard. Set up categories with YouTube clips, the
 2. Go to **Setup** — name your event, add categories, and fill in questions with YouTube video IDs and clip timestamps
 3. Switch to **Soundboard** — click a point circle to open a question
 4. Hit **Play** to stream the clip, **Stop** when ready, and **Reveal Answer** to show the artist and song
-5. Used questions are greyed out automatically. Use **Reset Game** to start a fresh round with the same categories.
+5. Questions with multiple choice answers display options automatically when the clip plays
+6. Revealed questions turn green, played-but-unrevealed questions are dimmed. Use **Reset Game** to start a fresh round with the same categories.
 
 ## Tech Stack
 
