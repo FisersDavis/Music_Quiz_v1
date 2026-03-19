@@ -345,7 +345,7 @@ input::placeholder { color: var(--muted); }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 
 /* ─── SOUNDBOARD PAGE ──────────────────────────────────── */
-#screen-soundboard .content { max-width: 1200px; }
+#screen-soundboard .content { max-width: 1600px; }
 
 .sb-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -388,43 +388,43 @@ input::placeholder { color: var(--muted); }
 /* ─── CATEGORY GRID (SOUNDBOARD) ─────────────────────── */
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
 }
 
 .cat-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 20px 16px;
+  padding: 14px 10px;
   text-align: center;
   transition: border-color .2s;
 }
 
 .cat-card-name {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
+  font-size: 18px;
   letter-spacing: 0.06em;
   color: var(--text);
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   line-height: 1.1;
-  min-height: 24px;
+  min-height: 20px;
 }
 
 .cat-circles {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .cat-circle {
-  width: 56px; height: 56px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   border: 2px solid var(--accent);
   background: transparent;
   color: var(--accent);
   font-family: 'DM Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
