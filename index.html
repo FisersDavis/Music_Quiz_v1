@@ -64,13 +64,17 @@ nav {
   margin-right: auto;
 }
 
-.nav-brand-sub {
+.credit-footer {
+  position: fixed;
+  bottom: 12px;
+  left: 16px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 300;
   letter-spacing: 0.04em;
-  margin-left: 6px;
-  color: var(--accent-d);
+  color: rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  pointer-events: none;
 }
 
 .nav-tab {
@@ -464,7 +468,7 @@ input::placeholder { color: var(--muted); }
      NAV
 ═════════════════════════════════════════════════════════ -->
 <nav>
-  <span class="nav-brand">🎵 MusicQuiz <span class="nav-brand-sub">by Fisers Davis</span></span>
+  <span class="nav-brand">🎵 MusicQuiz</span>
   <button class="nav-tab active" id="tab-soundboard" onclick="switchTab('soundboard')">▶ Soundboard</button>
   <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">⚙ Setup</button>
   <span class="nav-event-name" id="nav-event-display"></span>
@@ -1149,5 +1153,6 @@ function esc(str) {
 renderSoundboard();
 updateNavEventName();
 </script>
+<div class="credit-footer">by Fisers Davis</div>
 </body>
 </html>
