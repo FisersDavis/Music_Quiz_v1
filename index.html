@@ -591,6 +591,7 @@ input::placeholder { color: var(--muted); }
   <span class="nav-brand">🎵 MusicQuiz</span>
   <button class="nav-tab active" id="tab-soundboard" onclick="switchTab('soundboard')">▶ Soundboard</button>
   <button class="nav-tab" id="tab-setup" onclick="switchTab('setup')">⚙ Setup</button>
+  <button class="nav-tab" id="tab-howto" onclick="switchTab('howto')">? How to Use</button>
   <span class="nav-event-name" id="nav-event-display"></span>
 </nav>
 
@@ -669,6 +670,96 @@ input::placeholder { color: var(--muted); }
     </div>
     <div class="io-row">
       <button class="btn btn-danger" onclick="clearAll()">⚠ Clear All Categories</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     HOW TO USE SCREEN
+═════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-howto">
+  <div class="content" style="max-width:720px">
+
+    <div class="page-title">How to Use</div>
+    <div class="page-sub">Everything you need to get started</div>
+
+    <!-- IMPORTANT NOTICE -->
+    <div style="background:rgba(255,69,69,.06);border:1px solid var(--red);border-radius:6px;padding:20px 24px;margin-bottom:32px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--red);margin-bottom:8px">Important — Read This First</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.7;letter-spacing:.03em">
+        Your quiz setup is saved <strong>only on your computer</strong> (in your browser's local storage).
+        If you send someone the link to this page, they will <strong>not</strong> see your categories or questions — they'll get a blank quiz.<br><br>
+        <strong>To share your quiz with someone else:</strong><br>
+        1. Go to the <strong>⚙ Setup</strong> tab<br>
+        2. Scroll down to <strong>Import / Export</strong><br>
+        3. Click <strong>↓ Export JSON</strong> — this downloads a small file containing your entire quiz<br>
+        4. Send that file to the other person (email, Slack, USB stick — whatever works)<br>
+        5. They open this page, go to <strong>⚙ Setup</strong>, click <strong>↑ Import JSON</strong>, and pick the file you sent<br><br>
+        That's it — they'll now have an exact copy of your quiz on their computer.
+      </div>
+    </div>
+
+    <!-- WHAT IS THIS -->
+    <div class="section-label">What Is This?</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.8;letter-spacing:.03em;margin-bottom:32px">
+      Musical Boogaloo is a music quiz game. You set up categories (like "Classic Rock" or "90s Pop"),
+      add YouTube clips as questions at different point levels (30, 40, and 50 points), and then play them
+      during a quiz night. Think of it like a Jeopardy-style board — contestants pick a category and a point value,
+      you play the clip, and they try to guess the song or artist.
+    </div>
+
+    <!-- STEP BY STEP -->
+    <div class="section-label">Step-by-Step Setup</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.8;letter-spacing:.03em;margin-bottom:32px">
+      <strong style="color:var(--accent)">Step 1 — Name your event</strong><br>
+      Go to <strong>⚙ Setup</strong> and type a name at the top (e.g. "Friday Night Quiz").
+      This is just for display — call it whatever you like.<br><br>
+
+      <strong style="color:var(--accent)">Step 2 — Create categories</strong><br>
+      Type a category name (e.g. "Classic Rock") in the box under "Add New Category" and click
+      <strong>+ Add Category</strong>. You can add up to 40 categories. Each category gets 3 question
+      slots: 30 points (easiest), 40 points (medium), and 50 points (hardest).<br><br>
+
+      <strong style="color:var(--accent)">Step 3 — Add questions</strong><br>
+      Click the expand arrow on a category to see its question slots. Click <strong>+ Add Question</strong> on any slot. You'll need:<br>
+      &nbsp;&nbsp;• A <strong>YouTube URL</strong> (or just the video ID) for the song<br>
+      &nbsp;&nbsp;• A <strong>start time</strong> and <strong>end time</strong> (in M:SS format, e.g. 1:30) — this is the clip that plays<br>
+      &nbsp;&nbsp;• The <strong>artist name</strong> — this is the answer that gets revealed<br>
+      &nbsp;&nbsp;• Optionally, a <strong>song title</strong> (shown after the answer is revealed)<br><br>
+
+      <strong style="color:var(--accent)">Step 4 — Reorder categories</strong><br>
+      Drag categories up and down in the setup list to change the order they appear on the soundboard.<br><br>
+
+      <strong style="color:var(--accent)">Step 5 — You're ready!</strong><br>
+      Switch to the <strong>▶ Soundboard</strong> tab. You'll see all your categories in a grid. Each circle
+      is a question — click it to open the game modal, play the clip, and reveal the answer when ready.
+    </div>
+
+    <!-- DURING THE GAME -->
+    <div class="section-label">During the Game</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.8;letter-spacing:.03em;margin-bottom:32px">
+      <strong style="color:var(--text)">Playing a question:</strong> Click any point circle on the soundboard.
+      A popup will appear with play/stop controls. Hit <strong>▶ Play</strong> to start the clip.
+      The music plays for the duration you set (start → end time).<br><br>
+
+      <strong style="color:var(--text)">Revealing the answer:</strong> When the contestants have guessed (or given up),
+      click <strong>Reveal Answer</strong>. The artist and song title will appear. The circle turns green to show
+      it's been used.<br><br>
+
+      <strong style="color:var(--text)">Resetting the board:</strong> If you want to play another round with the same
+      questions, click <strong>↺ Reset Game</strong> at the top of the soundboard. This clears all the green
+      "used" markers but keeps your questions intact.
+    </div>
+
+    <!-- TIPS -->
+    <div class="section-label">Tips</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.8;letter-spacing:.03em;margin-bottom:32px">
+      • <strong>Pick recognisable parts of songs</strong> — a famous chorus or riff works better than a random verse.<br>
+      • <strong>Keep clips short</strong> — 15 to 30 seconds is usually enough.<br>
+      • <strong>Test your clips beforehand</strong> — make sure each one plays correctly before quiz night.<br>
+      • <strong>Back up your quiz</strong> — use Export JSON to save a copy. If you clear your browser data, your quiz is gone.<br>
+      • <strong>30p = easy, 50p = hard</strong> — put well-known hits at 30 points and obscure tracks at 50.
     </div>
 
   </div>
