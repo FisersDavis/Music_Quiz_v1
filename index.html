@@ -442,8 +442,16 @@ input::placeholder { color: var(--muted); }
   border-color: var(--border);
   background: var(--border);
   color: var(--muted);
-  cursor: default;
+  cursor: pointer;
   opacity: 0.5;
+}
+
+.cat-circle.revealed {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+  cursor: pointer;
+  opacity: 0.85;
 }
 
 .cat-circle.empty {
@@ -944,10 +952,13 @@ function uid() {
 
 let appData = loadData();
 let usedQuestions = new Set(); // stores "catId-pts" keys
+let revealedQuestions = new Set(); // stores "catId-pts" keys for revealed answers
 
 function questionKey(catId, pts) { return catId + '-' + pts; }
 function isUsed(catId, pts) { return usedQuestions.has(questionKey(catId, pts)); }
 function markUsed(catId, pts) { usedQuestions.add(questionKey(catId, pts)); }
+function isRevealed(catId, pts) { return revealedQuestions.has(questionKey(catId, pts)); }
+function markRevealed(catId, pts) { revealedQuestions.add(questionKey(catId, pts)); }
 
 // ════════════════════════════════════════════════════════
 // NAVIGATION
@@ -1144,8 +1155,11 @@ function deleteCategory(catId) {
   if (currentGameCatId === catId) gmStop();
   appData.categories = appData.categories.filter(c => c.id !== catId);
   expandedCats.delete(catId);
-  // Clean up used state for this category
-  POINT_TIERS.forEach(p => usedQuestions.delete(questionKey(catId, p)));
+  // Clean up used/revealed state for this category
+  POINT_TIERS.forEach(p => {
+    usedQuestions.delete(questionKey(catId, p));
+    revealedQuestions.delete(questionKey(catId, p));
+  });
   saveData();
   renderCategoryList();
   showToast('Category removed');
@@ -1308,6 +1322,7 @@ function importJSON(e) {
       if (!confirm(`Import "${displayName}" with ${imported.categories.length} categories? This will replace your current setup.`)) return;
       appData = imported;
       usedQuestions.clear();
+      revealedQuestions.clear();
       saveData();
       renderSetup();
       showToast(`✓ Imported ${appData.categories.length} categories`);
@@ -1323,6 +1338,7 @@ function clearAll() {
   if (!confirm('Delete ALL categories? This cannot be undone.')) return;
   appData.categories = [];
   usedQuestions.clear();
+  revealedQuestions.clear();
   expandedCats.clear();
   saveData();
   renderCategoryList();
@@ -1354,14 +1370,19 @@ function renderSoundboard() {
     const circles = POINT_TIERS.map(pts => {
       const q = cat.questions[pts];
       const used = isUsed(cat.id, pts);
+      const revealed = isRevealed(cat.id, pts);
       const empty = !q;
       let cls, onclick;
       if (empty) {
         cls = 'cat-circle empty';
         onclick = '';
+      } else if (revealed) {
+        cls = 'cat-circle revealed';
+        onclick = `onclick="openGameModal('${cat.id}',${pts})"`;
       } else if (used) {
         cls = 'cat-circle used';
-        onclick = '';
+        onclick = `onclick="openGameModal('${cat.id}',${pts})"`;
+
       } else {
         cls = 'cat-circle';
         onclick = `onclick="openGameModal('${cat.id}',${pts})"`;
@@ -1380,6 +1401,7 @@ function renderSoundboard() {
 function resetGame() {
   if (!confirm('Clear all used states? The categories stay intact.')) return;
   usedQuestions.clear();
+  revealedQuestions.clear();
   gmStop();
   renderSoundboard();
   showToast('✓ Game reset — ready for a new round');
@@ -1520,6 +1542,8 @@ function gmStop(silent) {
 function gmReveal() {
   document.getElementById('gm-answer').classList.add('visible');
   document.getElementById('gm-reveal').disabled = true;
+  markRevealed(currentGameCatId, currentGamePts);
+  renderSoundboard();
 }
 
 // ════════════════════════════════════════════════════════
