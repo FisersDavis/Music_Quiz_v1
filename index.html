@@ -154,7 +154,7 @@ input[type="text"], input[type="number"], input[type="url"] {
 input:focus { border-color: var(--accent); }
 input::placeholder { color: var(--muted); }
 
-/* ─── ADD SONG FORM ────────────────────────────────────── */
+/* ─── ADD CATEGORY FORM ───────────────────────────────── */
 .add-form {
   background: var(--surface);
   border: 1px solid var(--border2);
@@ -221,43 +221,86 @@ input::placeholder { color: var(--muted); }
 .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .btn:disabled:hover { background: transparent; color: inherit; }
 
-/* ─── SONG LIST (SETUP) ────────────────────────────────── */
-.song-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+/* ─── CATEGORY ACCORDION (SETUP) ─────────────────────── */
+.cat-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
 
-.song-item {
+.cat-section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 16px 20px;
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 16px;
-  align-items: center;
   transition: border-color .2s, background .2s;
   cursor: grab;
   user-select: none;
 }
 
-.song-item:active { cursor: grabbing; }
-.song-item.drag-over { border-color: var(--accent); background: var(--play-bg); }
-.song-item.dragging { opacity: 0.4; }
+.cat-section:active { cursor: grabbing; }
+.cat-section.drag-over { border-color: var(--accent); background: var(--play-bg); }
+.cat-section.dragging { opacity: 0.4; }
 
-.drag-handle { color: var(--muted); font-size: 14px; cursor: grab; }
+.cat-header {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 20px;
+  cursor: pointer;
+}
 
-.song-info { min-width: 0; }
-
-.song-label-badge {
+.cat-header-name {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 18px; letter-spacing: 0.06em;
   color: var(--text); line-height: 1;
-  margin-bottom: 3px;
 }
 
-.song-meta-line {
+.cat-header-meta {
   font-size: 11px; color: var(--muted2); letter-spacing: 0.05em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
+.cat-header-toggle {
+  font-size: 14px; color: var(--muted);
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.cat-section.expanded .cat-header-toggle { transform: rotate(90deg); }
+
+.cat-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.cat-section.expanded .cat-body { display: block; }
+
+.question-slot {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.question-slot:last-child { border-bottom: none; }
+
+.question-slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.question-slot-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.question-slot-status {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.drag-handle { color: var(--muted); font-size: 14px; cursor: grab; }
 .song-actions { display: flex; gap: 4px; align-items: center; }
 
 /* ─── IMPORT/EXPORT ────────────────────────────────────── */
@@ -302,7 +345,7 @@ input::placeholder { color: var(--muted); }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 
 /* ─── SOUNDBOARD PAGE ──────────────────────────────────── */
-#screen-soundboard .content { max-width: 760px; }
+#screen-soundboard .content { max-width: 1200px; }
 
 .sb-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -342,63 +385,150 @@ input::placeholder { color: var(--muted); }
 
 #sb-status { flex: 1; color: var(--text); }
 
-/* cards */
-.sb-cards { display: flex; flex-direction: column; gap: 14px; }
+/* ─── CATEGORY GRID (SOUNDBOARD) ─────────────────────── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
 
-.sb-card {
+.cat-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 22px 26px;
-  position: relative; overflow: hidden;
-  transition: border-color .2s, background .2s;
+  border-radius: 8px;
+  padding: 20px 16px;
+  text-align: center;
+  transition: border-color .2s;
 }
 
-.sb-card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: var(--border); transition: background .2s;
-}
-
-.sb-card.playing { background: var(--play-bg); border-color: var(--accent); }
-.sb-card.playing::before { background: var(--accent); }
-.sb-card.revealed { border-color: var(--green); background: var(--rev-bg); }
-.sb-card.revealed::before { background: var(--green); }
-
-.sb-card-top {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px; gap: 12px;
-}
-
-.sb-card-label {
+.cat-card-name {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px; letter-spacing: 0.06em; line-height: 1;
+  font-size: 22px;
+  letter-spacing: 0.06em;
   color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.1;
+  min-height: 24px;
 }
-.sb-card.playing .sb-card-label { color: var(--accent); }
 
-.sb-card-pts {
-  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--muted); background: rgba(255,255,255,.04);
-  border: 1px solid var(--border);
-  border-radius: 3px; padding: 4px 10px; white-space: nowrap;
+.cat-circles {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
-.sb-card.playing .sb-card-pts { border-color: var(--accent); color: var(--accent); }
 
-.sb-clip-info { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 14px; }
+.cat-circle {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cat-circle:hover:not(.used):not(.empty) {
+  background: var(--accent);
+  color: #000;
+}
+
+.cat-circle.used {
+  border-color: var(--green);
+  background: var(--green);
+  color: #000;
+  cursor: default;
+  opacity: 0.5;
+}
+
+.cat-circle.empty {
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* ─── GAME MODAL ──────────────────────────────────────── */
+#game-modal .modal {
+  max-width: 480px;
+  text-align: center;
+}
+
+.gm-category {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.gm-points {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.gm-clip-info {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+
+.gm-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.gm-answer {
+  display: none;
+  margin-top: 8px;
+  padding: 11px 16px;
+  background: rgba(76,175,80,.07);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  color: var(--green);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  animation: fadeIn .3s ease;
+}
+
+.gm-answer.visible { display: block; }
+.gm-answer strong { display: block; font-size: 15px; margin-bottom: 2px; }
+.gm-answer span { font-size: 11px; color: #5a9a5d; letter-spacing: 0.1em; }
+
+/* game modal button styles */
+.sb-btn-play  { border-color: var(--accent); color: var(--accent); }
+.sb-btn-play:hover  { background: var(--accent); color: #000; }
+.sb-btn-stop  { border-color: var(--red); color: var(--red); }
+.sb-btn-stop:hover  { background: var(--red); color: #fff; }
+.sb-btn-reveal { border-color: var(--border2); color: var(--muted2); }
+.sb-btn-reveal:hover { border-color: var(--green); color: var(--green); }
 
 /* waveform */
 .waveform {
   display: flex; align-items: center; gap: 3px;
   height: 22px; margin-bottom: 14px;
+  justify-content: center;
   opacity: 0; transition: opacity .3s;
 }
-.sb-card.playing .waveform { opacity: 1; }
+#game-modal .modal.playing .waveform { opacity: 1; }
 .wbar {
   width: 3px; background: var(--accent);
   border-radius: 2px; height: 4px;
 }
-.sb-card.playing .wbar { animation: wv .8s ease-in-out infinite; }
+#game-modal .modal.playing .wbar { animation: wv .8s ease-in-out infinite; }
 
 .wbar:nth-child(1)  { --h:18px; animation-delay:0.00s }
 .wbar:nth-child(2)  { --h:13px; animation-delay:0.10s }
@@ -413,30 +543,6 @@ input::placeholder { color: var(--muted); }
 .wbar:nth-child(11) { --h:21px; animation-delay:0.12s }
 .wbar:nth-child(12) { --h:14px; animation-delay:0.07s }
 @keyframes wv { 0%,100%{height:4px} 50%{height:var(--h)} }
-
-/* card controls */
-.sb-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-.sb-btn-play  { border-color: var(--accent); color: var(--accent); }
-.sb-btn-play:hover  { background: var(--accent); color: #000; }
-.sb-btn-stop  { border-color: var(--red); color: var(--red); }
-.sb-btn-stop:hover  { background: var(--red); color: #fff; }
-.sb-btn-reveal { border-color: var(--border2); color: var(--muted2); margin-left: auto; }
-.sb-btn-reveal:hover { border-color: var(--green); color: var(--green); }
-
-/* answer */
-.sb-answer {
-  display: none;
-  margin-top: 14px; padding: 11px 16px;
-  background: rgba(76,175,80,.07);
-  border: 1px solid var(--green);
-  border-radius: 4px; color: var(--green);
-  font-size: 13px; letter-spacing: 0.05em;
-  animation: fadeIn .3s ease;
-}
-.sb-card.revealed .sb-answer { display: block; }
-.sb-answer strong { display: block; font-size: 15px; margin-bottom: 2px; }
-.sb-answer span { font-size: 11px; color: #5a9a5d; letter-spacing: 0.1em; }
 
 @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
 
@@ -485,15 +591,15 @@ input::placeholder { color: var(--muted); }
         <div class="sb-title" id="sb-main-title">Music Quiz</div>
         <div class="sb-event" id="sb-event-sub"></div>
       </div>
-      <button class="btn btn-ghost" onclick="resetGame()" title="Clear all revealed answers for a fresh round">↺ Reset Game</button>
+      <button class="btn btn-ghost" onclick="resetGame()" title="Clear all used states for a fresh round">↺ Reset Game</button>
     </div>
 
     <div class="status-bar">
       <div class="status-dot" id="sb-dot"></div>
-      <div id="sb-status">Ready — select a clip to play</div>
+      <div id="sb-status">Ready — select a question to play</div>
     </div>
 
-    <div class="sb-cards" id="sb-cards"></div>
+    <div class="cat-grid" id="sb-grid"></div>
 
   </div>
 </div>
@@ -515,60 +621,29 @@ input::placeholder { color: var(--muted); }
         <input type="text" id="setup-event-name" placeholder="e.g. Atea Summer Quiz 2026" oninput="saveEventName()">
       </div>
       <div style="padding-bottom:1px">
-        <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;">SONGS LOADED</div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px;">CATEGORIES</div>
         <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:.06em;color:var(--accent)" id="setup-count">0</div>
       </div>
     </div>
 
-    <!-- Add new song form -->
-    <div class="section-label">Add New Song</div>
-    <div class="add-form" id="add-form">
-      <div class="add-form-grid">
-        <div class="field">
-          <label>Display Label *</label>
-          <input type="text" id="add-label" placeholder="e.g. Rock 30p">
+    <!-- Add new category -->
+    <div class="section-label">Add New Category</div>
+    <div class="add-form" id="add-cat-form">
+      <div style="display:flex;gap:14px;align-items:flex-end">
+        <div class="field" style="flex:1">
+          <label>Category Name *</label>
+          <input type="text" id="add-cat-name" placeholder="e.g. Classic Rock" onkeydown="if(event.key==='Enter')addCategory()">
         </div>
-        <div class="field">
-          <label>Points Value *</label>
-          <input type="number" id="add-points" placeholder="e.g. 30" min="0">
-        </div>
-        <div class="field full">
-          <label>YouTube URL or Video ID *</label>
-          <input type="text" id="add-url" placeholder="https://youtube.com/watch?v=... or just the video ID">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Start Time (MM:SS) *</label>
-          <input type="text" id="add-start" placeholder="0:00">
-        </div>
-        <div class="field">
-          <label>End Time (MM:SS) *</label>
-          <input type="text" id="add-end" placeholder="0:30">
-        </div>
-        <div class="field">
-          <label>Artist / Answer *</label>
-          <input type="text" id="add-artist" placeholder="e.g. Queen">
-        </div>
-      </div>
-      <div class="add-form-grid">
-        <div class="field full">
-          <label>Song Title (shown after reveal)</label>
-          <input type="text" id="add-songtitle" placeholder="e.g. Don't Stop Me Now (1979)">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
-        <button class="btn btn-accent" onclick="addSong()">+ Add Song</button>
+        <button class="btn btn-accent" onclick="addCategory()" style="margin-bottom:1px">+ Add Category</button>
       </div>
     </div>
 
-    <!-- Song list -->
+    <!-- Category list -->
     <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Song List</span>
+      <span>Categories</span>
       <span style="font-size:10px;color:var(--muted);letter-spacing:.1em">DRAG TO REORDER</span>
     </div>
-    <div class="song-list" id="setup-song-list"></div>
+    <div class="cat-list" id="setup-cat-list"></div>
 
     <!-- Import / Export -->
     <div class="section-label">Import / Export</div>
@@ -576,34 +651,27 @@ input::placeholder { color: var(--muted); }
       <button class="btn btn-ghost" onclick="exportJSON()">↓ Export JSON</button>
       <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">↑ Import JSON</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
-      <span class="io-info">Share your song configs with colleagues — they just import the JSON file.</span>
+      <span class="io-info">Share your quiz configs with colleagues — they just import the JSON file.</span>
     </div>
     <div class="io-row">
-      <button class="btn btn-danger" onclick="clearAll()">⚠ Clear All Songs</button>
+      <button class="btn btn-danger" onclick="clearAll()">⚠ Clear All Categories</button>
     </div>
 
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════
-     EDIT MODAL
+     EDIT QUESTION MODAL
 ═════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
-    <div class="modal-title">Edit Song</div>
-    <input type="hidden" id="edit-id">
+    <div class="modal-title" id="edit-modal-title">Edit Question</div>
+    <input type="hidden" id="edit-cat-id">
+    <input type="hidden" id="edit-pts">
     <div class="modal-grid">
-      <div class="field">
-        <label>Display Label *</label>
-        <input type="text" id="edit-label" placeholder="e.g. Rock 40p">
-      </div>
-      <div class="field">
-        <label>Points Value *</label>
-        <input type="number" id="edit-points" placeholder="40" min="0">
-      </div>
       <div class="field full">
         <label>YouTube URL or Video ID *</label>
-        <input type="text" id="edit-url" placeholder="https://youtube.com/watch?v=...">
+        <input type="text" id="edit-url" placeholder="https://youtube.com/watch?v=... or just the video ID">
       </div>
     </div>
     <div class="modal-row">
@@ -617,18 +685,48 @@ input::placeholder { color: var(--muted); }
       </div>
       <div class="field">
         <label>Artist / Answer *</label>
-        <input type="text" id="edit-artist" placeholder="Queen">
+        <input type="text" id="edit-artist" placeholder="e.g. Queen">
       </div>
     </div>
     <div class="modal-grid">
       <div class="field full">
         <label>Song Title (shown after reveal)</label>
-        <input type="text" id="edit-songtitle" placeholder="Don't Stop Me Now (1979)">
+        <input type="text" id="edit-songtitle" placeholder="e.g. Don't Stop Me Now (1979)">
       </div>
     </div>
     <div class="modal-actions">
+      <button class="btn btn-danger" onclick="clearQuestionFromModal()" style="margin-right:auto">Clear Slot</button>
       <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
-      <button class="btn btn-accent" onclick="saveEdit()">Save Changes</button>
+      <button class="btn btn-accent" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     GAME MODAL (SOUNDBOARD)
+═════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="game-modal">
+  <div class="modal">
+    <div class="gm-category" id="gm-cat-name"></div>
+    <div class="gm-points" id="gm-points"></div>
+    <div class="gm-clip-info" id="gm-clip-info"></div>
+    <div class="waveform" id="gm-waveform">
+      <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+      <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+      <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+      <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+    </div>
+    <div class="gm-controls">
+      <button class="btn sb-btn-play" id="gm-play" onclick="gmPlay()">▶ Play</button>
+      <button class="btn sb-btn-stop" id="gm-stop" onclick="gmStop()" disabled>■ Stop</button>
+      <button class="btn sb-btn-reveal" id="gm-reveal" onclick="gmReveal()">Reveal Answer</button>
+    </div>
+    <div class="gm-answer" id="gm-answer">
+      <strong id="gm-artist"></strong>
+      <span id="gm-songtitle"></span>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeGameModal()">Close</button>
     </div>
   </div>
 </div>
@@ -643,24 +741,30 @@ input::placeholder { color: var(--muted); }
 // ════════════════════════════════════════════════════════
 // DATA MODEL
 // ════════════════════════════════════════════════════════
-const STORAGE_KEY = 'musicquiz_v2';
+const STORAGE_KEY = 'musicquiz_v3';
+const POINT_TIERS = [30, 40, 50];
 
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
-      // [A-006] Validate stored schema structure
-      if (data && Array.isArray(data.songs)) return data;
+      if (data && Array.isArray(data.categories)) return data;
     }
   } catch(e) {}
-  // Default demo songs
+  // Default demo category
   return {
     eventName: 'Rock Quiz',
-    songs: [
-      { id: uid(), label: 'Rock 30p', points: 30, videoId: 'IXdNnw99-Ic', start: 82, end: 112, artist: 'Pink Floyd', songTitle: 'Wish You Were Here (1975)' },
-      { id: uid(), label: 'Rock 40p', points: 40, videoId: '0J2QdDbelmY', start: 12, end: 42, artist: 'The White Stripes', songTitle: 'Seven Nation Army (2003)' },
-      { id: uid(), label: 'Rock 50p', points: 50, videoId: 'HgzGwKwLmgM', start: 55, end: 85, artist: 'Queen', songTitle: "Don't Stop Me Now (1979)" },
+    categories: [
+      {
+        id: uid(),
+        name: 'Classic Rock',
+        questions: {
+          30: { id: uid(), videoId: 'IXdNnw99-Ic', start: 82, end: 112, artist: 'Pink Floyd', songTitle: 'Wish You Were Here (1975)' },
+          40: { id: uid(), videoId: '0J2QdDbelmY', start: 12, end: 42, artist: 'The White Stripes', songTitle: 'Seven Nation Army (2003)' },
+          50: { id: uid(), videoId: 'HgzGwKwLmgM', start: 55, end: 85, artist: 'Queen', songTitle: "Don't Stop Me Now (1979)" }
+        }
+      }
     ]
   };
 }
@@ -674,7 +778,11 @@ function uid() {
 }
 
 let appData = loadData();
-let revealedIds = new Set();
+let usedQuestions = new Set(); // stores "catId-pts" keys
+
+function questionKey(catId, pts) { return catId + '-' + pts; }
+function isUsed(catId, pts) { return usedQuestions.has(questionKey(catId, pts)); }
+function markUsed(catId, pts) { usedQuestions.add(questionKey(catId, pts)); }
 
 // ════════════════════════════════════════════════════════
 // NAVIGATION
@@ -695,11 +803,9 @@ function switchTab(tab) {
 function parseVideoId(input) {
   input = (input || '').trim();
   const patterns = [
-    // [B-003] Handle v= in any query param position
     /[?&]v=([A-Za-z0-9_-]{11})/,
     /youtu\.be\/([A-Za-z0-9_-]{11})/,
     /youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,
-    // [B-002] Handle YouTube Shorts URLs
     /youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/,
     /^([A-Za-z0-9_-]{11})$/
   ];
@@ -712,17 +818,13 @@ function parseVideoId(input) {
 
 function parseTime(str) {
   str = (str || '').trim();
-  // [A-004] Reject H:MM:SS or any multi-colon input
   if ((str.match(/:/g) || []).length > 1) return null;
-  // Accept MM:SS
   if (/^\d+:\d{2}$/.test(str)) {
     const [m, s] = str.split(':').map(Number);
-    // [A-003] Reject invalid seconds
     if (s >= 60) return null;
     return m * 60 + s;
   }
   const n = parseInt(str);
-  // [B-004] Reject negative and NaN
   return isNaN(n) || n < 0 ? null : n;
 }
 
@@ -750,43 +852,47 @@ function updateNavEventName() {
 // SETUP SCREEN
 // ════════════════════════════════════════════════════════
 function renderSetup() {
-  // Event name
   document.getElementById('setup-event-name').value = appData.eventName || '';
-  document.getElementById('setup-count').textContent = appData.songs.length;
+  document.getElementById('setup-count').textContent = appData.categories.length;
   updateNavEventName();
-  renderSetupList();
+  renderCategoryList();
 }
 
-function renderSetupList() {
-  const list = document.getElementById('setup-song-list');
-  document.getElementById('setup-count').textContent = appData.songs.length;
+function renderCategoryList() {
+  const list = document.getElementById('setup-cat-list');
+  document.getElementById('setup-count').textContent = appData.categories.length;
 
-  if (appData.songs.length === 0) {
-    list.innerHTML = `<div class="empty-state"><span class="big">0</span>No songs added yet. Use the form above to add your first clip.</div>`;
+  if (appData.categories.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span class="big">0</span>No categories added yet. Use the form above to add your first category.</div>';
     return;
   }
 
   list.innerHTML = '';
-  appData.songs.forEach((song, i) => {
+  appData.categories.forEach((cat, i) => {
+    const filledCount = POINT_TIERS.filter(p => cat.questions[p]).length;
     const div = document.createElement('div');
-    div.className = 'song-item';
+    div.className = 'cat-section' + (expandedCats.has(cat.id) ? ' expanded' : '');
     div.draggable = true;
     div.dataset.index = i;
 
-    const duration = song.end - song.start;
     div.innerHTML = `
-      <span class="drag-handle">⠿</span>
-      <div class="song-info">
-        <div class="song-label-badge">${esc(song.label)}</div>
-        <div class="song-meta-line">${esc(song.artist)}${song.songTitle ? ' · ' + esc(song.songTitle) : ''} &nbsp;·&nbsp; ${formatTime(song.start)}–${formatTime(song.end)} (${duration}s) &nbsp;·&nbsp; ${song.points}pts</div>
+      <div class="cat-header" onclick="toggleCategory('${cat.id}')">
+        <span class="drag-handle">⠿</span>
+        <div>
+          <div class="cat-header-name">${esc(cat.name)}</div>
+          <div class="cat-header-meta">${filledCount}/3 questions filled</div>
+        </div>
+        <div class="song-actions">
+          <button class="btn-icon" onclick="event.stopPropagation();editCatName('${cat.id}')" title="Rename">✎</button>
+          <button class="btn-icon del" onclick="event.stopPropagation();deleteCategory('${cat.id}')" title="Delete">✕</button>
+        </div>
+        <span class="cat-header-toggle">▸</span>
       </div>
-      <div class="song-actions">
-        <button class="btn-icon" onclick="openEditModal('${song.id}')" title="Edit">✎</button>
-        <button class="btn-icon del" onclick="deleteSong('${song.id}')" title="Delete">✕</button>
+      <div class="cat-body">
+        ${POINT_TIERS.map(pts => renderQuestionSlot(cat, pts)).join('')}
       </div>
     `;
 
-    // Drag events
     div.addEventListener('dragstart', onDragStart);
     div.addEventListener('dragover', onDragOver);
     div.addEventListener('drop', onDrop);
@@ -796,70 +902,116 @@ function renderSetupList() {
   });
 }
 
+function renderQuestionSlot(cat, pts) {
+  const q = cat.questions[pts];
+  if (q) {
+    const dur = q.end - q.start;
+    return `
+      <div class="question-slot">
+        <div class="question-slot-header">
+          <span class="question-slot-label">${pts} POINTS</span>
+          <div class="song-actions">
+            <button class="btn-icon" onclick="openEditModal('${cat.id}',${pts})" title="Edit">✎</button>
+            <button class="btn-icon del" onclick="clearQuestionSlot('${cat.id}',${pts})" title="Clear">✕</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted2);letter-spacing:.05em">
+          ${esc(q.artist)}${q.songTitle ? ' · ' + esc(q.songTitle) : ''} &nbsp;·&nbsp; ${formatTime(q.start)}–${formatTime(q.end)} (${dur}s)
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="question-slot">
+      <div class="question-slot-header">
+        <span class="question-slot-label">${pts} POINTS</span>
+        <span class="question-slot-status">Empty</span>
+      </div>
+      <button class="btn btn-ghost" onclick="openEditModal('${cat.id}',${pts})" style="font-size:10px;padding:6px 12px">+ Add Question</button>
+    </div>`;
+}
+
+let expandedCats = new Set();
+
+function toggleCategory(catId) {
+  if (expandedCats.has(catId)) expandedCats.delete(catId);
+  else expandedCats.add(catId);
+  renderCategoryList();
+}
+
 function saveEventName() {
   appData.eventName = document.getElementById('setup-event-name').value;
   saveData();
   updateNavEventName();
 }
 
-function clearAddForm() {
-  ['add-label','add-points','add-url','add-start','add-end','add-artist','add-songtitle'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-}
+function addCategory() {
+  const nameInput = document.getElementById('add-cat-name');
+  const name = nameInput.value.trim();
+  if (!name) { showToast('⚠ Category name is required'); return; }
+  if (appData.categories.length >= 40) { showToast('⚠ Maximum 40 categories'); return; }
 
-function addSong() {
-  const label = document.getElementById('add-label').value.trim();
-  const points = parseInt(document.getElementById('add-points').value);
-  const urlRaw = document.getElementById('add-url').value.trim();
-  const startStr = document.getElementById('add-start').value.trim();
-  const endStr = document.getElementById('add-end').value.trim();
-  const artist = document.getElementById('add-artist').value.trim();
-  const songTitle = document.getElementById('add-songtitle').value.trim();
-
-  if (!label)   { showToast('⚠ Display label is required'); return; }
-  if (isNaN(points) || points < 1) { showToast('⚠ Points value must be a positive number'); return; }
-  const videoId = parseVideoId(urlRaw);
-  if (!videoId) { showToast('⚠ Could not extract a YouTube video ID — check the URL'); return; }
-  const start = parseTime(startStr);
-  const end = parseTime(endStr);
-  if (start === null) { showToast('⚠ Invalid start time (use M:SS format)'); return; }
-  if (end === null)   { showToast('⚠ Invalid end time (use M:SS format)'); return; }
-  if (end <= start)   { showToast('⚠ End time must be after start time'); return; }
-  if (!artist) { showToast('⚠ Artist / Answer is required'); return; }
-
-  appData.songs.push({ id: uid(), label, points, videoId, start, end, artist, songTitle });
+  const cat = { id: uid(), name: name, questions: { 30: null, 40: null, 50: null } };
+  appData.categories.push(cat);
   saveData();
-  clearAddForm();
-  renderSetupList();
-  showToast('✓ Song added');
-  // [D-001] Return focus to first field for bulk entry workflow
-  document.getElementById('add-label').focus();
+  nameInput.value = '';
+  expandedCats.add(cat.id);
+  renderCategoryList();
+  showToast('✓ Category added');
+  nameInput.focus();
 }
 
-function deleteSong(id) {
-  if (!confirm('Remove this song from the list?')) return;
-  // [C-001] Stop playback if this song is currently playing
-  if (currentPlayId === id) sbStop();
-  revealedIds.delete(id);
-  appData.songs = appData.songs.filter(s => s.id !== id);
+function editCatName(catId) {
+  const cat = appData.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const newName = prompt('Rename category:', cat.name);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed) { showToast('⚠ Name cannot be empty'); return; }
+  cat.name = trimmed;
   saveData();
-  renderSetupList();
-  showToast('Song removed');
+  renderCategoryList();
+  showToast('✓ Category renamed');
 }
 
-// ────────── Edit modal ──────────────────────────────────
-function openEditModal(id) {
-  const song = appData.songs.find(s => s.id === id);
-  if (!song) return;
-  document.getElementById('edit-id').value = song.id;
-  document.getElementById('edit-label').value = song.label;
-  document.getElementById('edit-points').value = song.points;
-  document.getElementById('edit-url').value = song.videoId;
-  document.getElementById('edit-start').value = formatTime(song.start);
-  document.getElementById('edit-end').value = formatTime(song.end);
-  document.getElementById('edit-artist').value = song.artist;
-  document.getElementById('edit-songtitle').value = song.songTitle || '';
+function deleteCategory(catId) {
+  if (!confirm('Remove this category and all its questions?')) return;
+  // Stop playback if current question belongs to this category
+  if (currentGameCatId === catId) gmStop();
+  appData.categories = appData.categories.filter(c => c.id !== catId);
+  expandedCats.delete(catId);
+  // Clean up used state for this category
+  POINT_TIERS.forEach(p => usedQuestions.delete(questionKey(catId, p)));
+  saveData();
+  renderCategoryList();
+  showToast('Category removed');
+}
+
+function clearQuestionSlot(catId, pts) {
+  const cat = appData.categories.find(c => c.id === catId);
+  if (!cat) return;
+  if (!cat.questions[pts]) return;
+  cat.questions[pts] = null;
+  saveData();
+  renderCategoryList();
+  showToast('Question cleared');
+}
+
+// ────────── Edit Question Modal ─────────────────────────
+function openEditModal(catId, pts) {
+  const cat = appData.categories.find(c => c.id === catId);
+  if (!cat) return;
+
+  document.getElementById('edit-cat-id').value = catId;
+  document.getElementById('edit-pts').value = pts;
+  document.getElementById('edit-modal-title').textContent = cat.name + ' — ' + pts + 'p Question';
+
+  const q = cat.questions[pts];
+  document.getElementById('edit-url').value = q ? q.videoId : '';
+  document.getElementById('edit-start').value = q ? formatTime(q.start) : '';
+  document.getElementById('edit-end').value = q ? formatTime(q.end) : '';
+  document.getElementById('edit-artist').value = q ? q.artist : '';
+  document.getElementById('edit-songtitle').value = q ? (q.songTitle || '') : '';
+
   document.getElementById('edit-modal').classList.add('open');
 }
 
@@ -868,33 +1020,39 @@ function closeEditModal() {
 }
 
 function saveEdit() {
-  const id = document.getElementById('edit-id').value;
-  const song = appData.songs.find(s => s.id === id);
-  if (!song) return;
+  const catId = document.getElementById('edit-cat-id').value;
+  const pts = parseInt(document.getElementById('edit-pts').value);
+  const cat = appData.categories.find(c => c.id === catId);
+  if (!cat) return;
 
-  const label = document.getElementById('edit-label').value.trim();
-  const points = parseInt(document.getElementById('edit-points').value);
   const urlRaw = document.getElementById('edit-url').value.trim();
   const startStr = document.getElementById('edit-start').value.trim();
   const endStr = document.getElementById('edit-end').value.trim();
   const artist = document.getElementById('edit-artist').value.trim();
   const songTitle = document.getElementById('edit-songtitle').value.trim();
 
-  if (!label) { showToast('⚠ Label required'); return; }
-  if (isNaN(points) || points < 1) { showToast('⚠ Points must be a positive number'); return; }
   const videoId = parseVideoId(urlRaw);
   if (!videoId) { showToast('⚠ Invalid YouTube URL/ID'); return; }
   const start = parseTime(startStr);
   const end = parseTime(endStr);
-  if (start === null || end === null) { showToast('⚠ Invalid time format'); return; }
+  if (start === null) { showToast('⚠ Invalid start time (use M:SS)'); return; }
+  if (end === null) { showToast('⚠ Invalid end time (use M:SS)'); return; }
   if (end <= start) { showToast('⚠ End must be after start'); return; }
-  if (!artist) { showToast('⚠ Artist required'); return; }
+  if (!artist) { showToast('⚠ Artist / Answer is required'); return; }
 
-  Object.assign(song, { label, points, videoId, start, end, artist, songTitle });
+  const existingId = cat.questions[pts] ? cat.questions[pts].id : uid();
+  cat.questions[pts] = { id: existingId, videoId, start, end, artist, songTitle };
   saveData();
   closeEditModal();
-  renderSetupList();
-  showToast('✓ Changes saved');
+  renderCategoryList();
+  showToast('✓ Question saved');
+}
+
+function clearQuestionFromModal() {
+  const catId = document.getElementById('edit-cat-id').value;
+  const pts = parseInt(document.getElementById('edit-pts').value);
+  clearQuestionSlot(catId, pts);
+  closeEditModal();
 }
 
 // Close modal on overlay click
@@ -912,7 +1070,7 @@ function onDragStart(e) {
 
 function onDragOver(e) {
   e.preventDefault();
-  document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.remove('drag-over'));
   e.currentTarget.classList.add('drag-over');
 }
 
@@ -920,16 +1078,16 @@ function onDrop(e) {
   e.preventDefault();
   const destIndex = parseInt(e.currentTarget.dataset.index);
   if (dragSrcIndex !== null && dragSrcIndex !== destIndex) {
-    const moved = appData.songs.splice(dragSrcIndex, 1)[0];
-    appData.songs.splice(destIndex, 0, moved);
+    const moved = appData.categories.splice(dragSrcIndex, 1)[0];
+    appData.categories.splice(destIndex, 0, moved);
     saveData();
-    renderSetupList();
+    renderCategoryList();
   }
 }
 
 function onDragEnd(e) {
   e.currentTarget.classList.remove('dragging');
-  document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+  document.querySelectorAll('.cat-section').forEach(el => el.classList.remove('drag-over'));
   dragSrcIndex = null;
 }
 
@@ -940,7 +1098,6 @@ function exportJSON() {
   a.href = URL.createObjectURL(blob);
   a.download = (appData.eventName || 'music-quiz').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '.json';
   a.click();
-  // [F-005] Release blob reference
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   showToast('✓ JSON exported');
 }
@@ -952,21 +1109,30 @@ function importJSON(e) {
   reader.onload = function(ev) {
     try {
       const imported = JSON.parse(ev.target.result);
-      if (!imported.songs || !Array.isArray(imported.songs)) throw new Error('Invalid format');
-      // [A-005] Validate required fields on each song
-      imported.songs = imported.songs.filter(s =>
-        s.videoId && typeof s.start === 'number' && typeof s.end === 'number' && s.artist
-      );
-      // [E-001/E-002] Regenerate all IDs to prevent XSS via crafted IDs
-      imported.songs.forEach(s => { s.id = uid(); });
-      // [E-003] Truncate eventName in confirm dialog
+      if (!imported.categories || !Array.isArray(imported.categories)) throw new Error('Invalid format');
+      // Validate and sanitize each category
+      imported.categories = imported.categories.filter(c => c.name && typeof c.questions === 'object');
+      // Regenerate all IDs
+      imported.categories.forEach(c => {
+        c.id = uid();
+        POINT_TIERS.forEach(p => {
+          if (c.questions[p]) {
+            const q = c.questions[p];
+            if (!q.videoId || typeof q.start !== 'number' || typeof q.end !== 'number' || !q.artist) {
+              c.questions[p] = null;
+            } else {
+              q.id = uid();
+            }
+          }
+        });
+      });
       const displayName = (imported.eventName || 'quiz').slice(0, 50);
-      if (!confirm(`Import "${displayName}" with ${imported.songs.length} songs? This will replace your current setup.`)) return;
+      if (!confirm(`Import "${displayName}" with ${imported.categories.length} categories? This will replace your current setup.`)) return;
       appData = imported;
-      revealedIds.clear();
+      usedQuestions.clear();
       saveData();
       renderSetup();
-      showToast(`✓ Imported ${appData.songs.length} songs`);
+      showToast(`✓ Imported ${appData.categories.length} categories`);
     } catch(err) {
       showToast('⚠ Invalid JSON file');
     }
@@ -976,14 +1142,14 @@ function importJSON(e) {
 }
 
 function clearAll() {
-  if (!confirm('Delete ALL songs? This cannot be undone.')) return;
-  appData.songs = [];
-  revealedIds.clear();
+  if (!confirm('Delete ALL categories? This cannot be undone.')) return;
+  appData.categories = [];
+  usedQuestions.clear();
+  expandedCats.clear();
   saveData();
-  renderSetupList();
-  // [C-003] Re-render soundboard if it's the active screen
+  renderCategoryList();
   if (document.getElementById('screen-soundboard').classList.contains('active')) renderSoundboard();
-  showToast('All songs cleared');
+  showToast('All categories cleared');
 }
 
 // ════════════════════════════════════════════════════════
@@ -992,76 +1158,102 @@ function clearAll() {
 function renderSoundboard() {
   const eventName = appData.eventName || 'Music Quiz';
   document.getElementById('sb-main-title').textContent = eventName;
-  document.getElementById('sb-event-sub').textContent = `${appData.songs.length} clips loaded`;
+  document.getElementById('sb-event-sub').textContent = `${appData.categories.length} categories`;
   updateNavEventName();
 
-  const container = document.getElementById('sb-cards');
+  const grid = document.getElementById('sb-grid');
 
-  if (appData.songs.length === 0) {
-    container.innerHTML = `<div class="empty-state"><span class="big">♪</span>No songs configured yet.<br>Go to <strong>⚙ Setup</strong> to add your clips.</div>`;
+  if (appData.categories.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><span class="big">♪</span>No categories configured yet.<br>Go to <strong>⚙ Setup</strong> to add categories.</div>';
     return;
   }
 
-  container.innerHTML = '';
-  appData.songs.forEach(song => {
+  grid.innerHTML = '';
+  appData.categories.forEach(cat => {
     const card = document.createElement('div');
-    card.className = 'sb-card';
-    card.id = `sbcard-${song.id}`;
+    card.className = 'cat-card';
 
-    const duration = song.end - song.start;
-    const wbars = Array.from({length:12}, () => `<div class="wbar"></div>`).join('');
+    const circles = POINT_TIERS.map(pts => {
+      const q = cat.questions[pts];
+      const used = isUsed(cat.id, pts);
+      const empty = !q;
+      let cls, onclick;
+      if (empty) {
+        cls = 'cat-circle empty';
+        onclick = '';
+      } else if (used) {
+        cls = 'cat-circle used';
+        onclick = '';
+      } else {
+        cls = 'cat-circle';
+        onclick = `onclick="openGameModal('${cat.id}',${pts})"`;
+      }
+      return `<div class="${cls}" ${onclick}>${pts}p</div>`;
+    }).join('');
 
     card.innerHTML = `
-      <div class="sb-card-top">
-        <div class="sb-card-label">${esc(song.label)}</div>
-        <div class="sb-card-pts">${song.points} pts · ${duration}s</div>
-      </div>
-      <div class="sb-clip-info">▶ ${formatTime(song.start)} → ⏹ ${formatTime(song.end)}</div>
-      <div class="waveform">${wbars}</div>
-      <div class="sb-controls">
-        <button class="btn sb-btn-play" onclick="sbPlay('${song.id}')">▶ Play</button>
-        <button class="btn sb-btn-stop" id="sbstop-${song.id}" onclick="sbStop()" disabled>■ Stop</button>
-        <button class="btn sb-btn-reveal" onclick="sbReveal('${song.id}')">Reveal Answer</button>
-      </div>
-      <div class="sb-answer" id="sbanswer-${song.id}">
-        <strong>${esc(song.artist)}</strong>
-        <span>${esc(song.songTitle || '')}</span>
-      </div>
+      <div class="cat-card-name">${esc(cat.name)}</div>
+      <div class="cat-circles">${circles}</div>
     `;
-    container.appendChild(card);
-  });
-
-  // [A-002] Restore playing-card state after rebuild
-  if (currentPlayId) {
-    const playCard = document.getElementById(`sbcard-${currentPlayId}`);
-    if (playCard) {
-      playCard.classList.add('playing');
-      const stopBtn = document.getElementById(`sbstop-${currentPlayId}`);
-      if (stopBtn) stopBtn.disabled = false;
-      const song = appData.songs.find(s => s.id === currentPlayId);
-      if (song) {
-        document.getElementById('sb-dot').classList.add('live');
-        document.getElementById('sb-status').textContent =
-          `NOW PLAYING → ${song.label}  ·  ends at ${formatTime(song.end)}`;
-      }
-    }
-  }
-
-  // [C-002] Restore revealed state after rebuild
-  revealedIds.forEach(rid => {
-    const revCard = document.getElementById(`sbcard-${rid}`);
-    if (revCard) revCard.classList.add('revealed');
+    grid.appendChild(card);
   });
 }
 
 function resetGame() {
-  if (!confirm('Clear all revealed answers? The song list stays intact.')) return;
-  revealedIds.clear();
-  document.querySelectorAll('.sb-card').forEach(c => c.classList.remove('revealed'));
-  document.querySelectorAll('.sb-btn-reveal').forEach(b => b.disabled = false);
-  sbStop();
+  if (!confirm('Clear all used states? The categories stay intact.')) return;
+  usedQuestions.clear();
+  gmStop();
+  renderSoundboard();
   showToast('✓ Game reset — ready for a new round');
 }
+
+// ════════════════════════════════════════════════════════
+// GAME MODAL
+// ════════════════════════════════════════════════════════
+let currentGameCatId = null;
+let currentGamePts = null;
+
+function openGameModal(catId, pts) {
+  const cat = appData.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const q = cat.questions[pts];
+  if (!q) return;
+
+  currentGameCatId = catId;
+  currentGamePts = pts;
+
+  document.getElementById('gm-cat-name').textContent = cat.name;
+  document.getElementById('gm-points').textContent = pts + ' Points';
+
+  const dur = q.end - q.start;
+  document.getElementById('gm-clip-info').textContent = `▶ ${formatTime(q.start)} → ⏹ ${formatTime(q.end)} (${dur}s)`;
+
+  // Reset state
+  document.getElementById('gm-answer').classList.remove('visible');
+  document.getElementById('gm-artist').textContent = q.artist;
+  document.getElementById('gm-songtitle').textContent = q.songTitle || '';
+  document.getElementById('gm-play').disabled = false;
+  document.getElementById('gm-stop').disabled = true;
+  document.getElementById('gm-reveal').disabled = false;
+
+  // Remove playing class
+  document.querySelector('#game-modal .modal').classList.remove('playing');
+
+  document.getElementById('game-modal').classList.add('open');
+}
+
+function closeGameModal() {
+  gmStop(true);
+  document.getElementById('game-modal').classList.remove('open');
+  currentGameCatId = null;
+  currentGamePts = null;
+  renderSoundboard();
+}
+
+// Close game modal on overlay click
+document.getElementById('game-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeGameModal();
+});
 
 // ════════════════════════════════════════════════════════
 // YOUTUBE PLAYER
@@ -1078,12 +1270,11 @@ window.onYouTubeIframeAPIReady = function() {
     events: {
       onReady: () => {
         ytReady = true;
-        // Ensure iframe allows autoplay audio
         const iframe = document.querySelector('#yt-container iframe');
         if (iframe) iframe.setAttribute('allow', 'autoplay; encrypted-media');
       },
       onStateChange: (e) => {
-        if (e.data === YT.PlayerState.ENDED) sbClearState();
+        if (e.data === YT.PlayerState.ENDED) gmStop();
       }
     }
   });
@@ -1093,51 +1284,42 @@ const ytScript = document.createElement('script');
 ytScript.src = 'https://www.youtube.com/iframe_api';
 document.head.appendChild(ytScript);
 
-function sbPlay(id) {
+function gmPlay() {
   if (!ytReady) { showToast('Player not ready yet…'); return; }
-  sbStop(true);
+  gmStop(true);
 
-  const song = appData.songs.find(s => s.id === id);
-  if (!song) return;
+  const cat = appData.categories.find(c => c.id === currentGameCatId);
+  if (!cat) return;
+  const q = cat.questions[currentGamePts];
+  if (!q) return;
 
-  currentPlayId = id;
-  ytPlayer.loadVideoById({ videoId: song.videoId, startSeconds: song.start, endSeconds: song.end });
+  currentPlayId = q.id;
+  ytPlayer.loadVideoById({ videoId: q.videoId, startSeconds: q.start, endSeconds: q.end });
 
-  document.getElementById(`sbcard-${id}`).classList.add('playing');
-  document.getElementById(`sbstop-${id}`).disabled = false;
+  document.getElementById('gm-stop').disabled = false;
+  document.querySelector('#game-modal .modal').classList.add('playing');
   document.getElementById('sb-dot').classList.add('live');
-  document.getElementById('sb-status').textContent = `NOW PLAYING → ${song.label}  ·  ends at ${formatTime(song.end)}`;
+  document.getElementById('sb-status').textContent = `NOW PLAYING → ${cat.name} ${currentGamePts}p`;
 
-  // Safety fallback stop timer
-  stopTimer = setTimeout(() => sbStop(), (song.end - song.start) * 1000 + 800);
+  stopTimer = setTimeout(() => gmStop(), (q.end - q.start) * 1000 + 800);
 }
 
-function sbStop(silent = false) {
+function gmStop(silent) {
   clearTimeout(stopTimer);
   if (ytPlayer && ytReady) { try { ytPlayer.stopVideo(); } catch(e){} }
-  sbClearState(silent);
-}
-
-function sbClearState(silent = false) {
-  if (currentPlayId) {
-    document.getElementById(`sbcard-${currentPlayId}`)?.classList.remove('playing');
-    const stopBtn = document.getElementById(`sbstop-${currentPlayId}`);
-    if (stopBtn) stopBtn.disabled = true;
-  }
+  currentPlayId = null;
+  document.getElementById('gm-stop').disabled = true;
+  document.querySelector('#game-modal .modal').classList.remove('playing');
   document.getElementById('sb-dot').classList.remove('live');
   if (!silent) document.getElementById('sb-status').textContent = 'Stopped — ready for next clip';
-  currentPlayId = null;
 }
 
-function sbReveal(id) {
-  revealedIds.add(id);
-  const card = document.getElementById(`sbcard-${id}`);
-  if (card) {
-    card.classList.add('revealed');
-    // [D-004] Disable reveal button after reveal
-    const revBtn = card.querySelector('.sb-btn-reveal');
-    if (revBtn) revBtn.disabled = true;
+function gmReveal() {
+  if (currentGameCatId && currentGamePts) {
+    markUsed(currentGameCatId, currentGamePts);
   }
+  document.getElementById('gm-answer').classList.add('visible');
+  document.getElementById('gm-reveal').disabled = true;
 }
 
 // ════════════════════════════════════════════════════════
