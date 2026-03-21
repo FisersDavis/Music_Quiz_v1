@@ -2,6 +2,9 @@
 
 A browser-based music quiz soundboard. Set up categories with YouTube clips, then run a live quiz from a Jeopardy-style grid — play a clip, let teams guess, reveal the answer.
 
+<img width="2712" height="1730" alt="image" src="https://github.com/user-attachments/assets/b4405dec-03e6-46e6-bfe4-35f4d305bfbe" />
+
+
 ## Features
 
 - Grid-based soundboard with three point tiers (30, 40, 50)
